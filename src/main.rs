@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 use anyhow::Context;
 use spring::{auto_config, App};
 use spring_sqlx::{
@@ -29,38 +29,43 @@ impl NamingEventListener for MyNamingEventListener {
         tracing::info!("subscriber notify: {:?}", event);
     }
 }
+
+static CLIENT_PROPS: LazyLock<ClientProps> = LazyLock::new(|| {
+    ClientProps::new()
+        .server_addr(constants::DEFAULT_SERVER_ADDR)
+        // .remote_grpc_port(9838)
+        // Attention! "public" is "", it is recommended to customize the namespace with clear meaning.
+        .namespace("")
+        .app_name("lazy_app")
+        .auth_username("admin")
+        .auth_password("admin")
+});
+static NAMING_SERVICE: LazyLock<Box<dyn NamingService>> = LazyLock::new(|| {
+    let naming_service = NamingServiceBuilder::new(CLIENT_PROPS.clone())
+        .enable_auth_plugin_http()
+        .build()
+        .unwrap();
+    Box::new(naming_service)
+});
 #[auto_config(WebConfigurator)]   // 自动扫描web router
 #[tokio::main]
 async fn main() -> Result<()> {
-    let client_props = ClientProps::new()
-        .server_addr("127.0.0.1:8848")
-        .namespace("")
-        .auth_username("admin")
-        .auth_password("admin");
-
-    let naming_service = NamingServiceBuilder::new(client_props).enable_auth_plugin_http().build();
     let listener = std::sync::Arc::new(MyNamingEventListener);
-    let _subscribe_ret = naming_service.expect("REASON")
+    let _subscribe_ret = NAMING_SERVICE
         .subscribe(
             "spring-rs-service".to_string(),
             Some(constants::DEFAULT_GROUP.to_string()),
             Vec::default(),
             listener,
         ).await;
+
     let service_instance1 = ServiceInstance {
         ip: "127.0.0.1".to_string(),
         port: 8123,
         ..Default::default()
     };
 
-    let client_props = ClientProps::new()
-        .server_addr("127.0.0.1:8848")
-        .namespace("")
-        .auth_username("admin")
-        .auth_password("admin");
-    let naming_service = NamingServiceBuilder::new(client_props).enable_auth_plugin_http().build();
-
-    let _register_instance_ret = naming_service.expect("REASON")
+    let _register_instance_ret = NAMING_SERVICE
         .batch_register_instance(
             "spring-rs-service".to_string(),
             Some(constants::DEFAULT_GROUP.to_string()),
