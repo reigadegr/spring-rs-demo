@@ -13,3 +13,5 @@ spring-sqlx = { version = "0.1.1", features = ["mysql", "runtime-tokio-rustls"] 
 # spring-rs项目默认使用tokio异步运行时
 tokio = { version = "1.40.0", features = ["full"] }
 anyhow = "1.0.89"
+nacos-sdk = { version = "0.4.2", features = ["default"] }
+tracing = "0.1.40"
