@@ -33,8 +33,6 @@ impl NamingEventListener for MyNamingEventListener {
 static CLIENT_PROPS: LazyLock<ClientProps> = LazyLock::new(|| {
     ClientProps::new()
         .server_addr(constants::DEFAULT_SERVER_ADDR)
-        // .remote_grpc_port(9838)
-        // Attention! "public" is "", it is recommended to customize the namespace with clear meaning.
         .namespace("")
         .app_name("lazy_app")
         .auth_username("admin")

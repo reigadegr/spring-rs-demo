@@ -15,4 +15,16 @@ tokio = { version = "1.40.0", features = ["full"] }
 anyhow = "1.0.89"
 nacos-sdk = { version = "0.4.2", features = ["default"] }
 tracing = "0.1.40"
-#tracing-subscriber = "0.3.18"
+
+
+[profile.dev]
+overflow-checks = false
+strip = true
+
+[profile.release]
+overflow-checks = false
+codegen-units = 1
+lto = "thin"
+opt-level = 3
+strip = true
+incremental = false
