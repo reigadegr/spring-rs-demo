@@ -27,7 +27,7 @@ use nacos_sdk::api::props::ClientProps;
 
 struct MyConfigChangeListener;
 
-impl ConfigChangeListener for MyConfigChangeListener  {
+impl ConfigChangeListener for MyConfigChangeListener {
     fn notify(&self, config_resp: ConfigResponse) {
         tracing::info!("listen the config={}", config_resp);
     }
@@ -42,22 +42,50 @@ impl NamingEventListener for MyNamingEventListener {
 }
 #[auto_config(WebConfigurator)]   // 自动扫描web router
 #[tokio::main]
-async fn main() -> Result<()>{
-    let mut client_props = ClientProps::new();
-    client_props.clone().server_addr("127.0.0.1:8848");
-    client_props.clone().namespace("namespace-id");
-    let config_service = ConfigServiceBuilder::new(client_props.clone())
-        .build();
+async fn main() -> Result<()> {
+    // tracing_subscriber::fmt()
+    //     // all spans/events with a level higher than TRACE (e.g, info, warn, etc.)
+    //     // will be written to stdout.
+    //     .with_max_level(tracing::Level::INFO)
+    //     .with_thread_names(true)
+    //     .with_thread_ids(true)
+    //     // sets this to be the default, global collector for this application.
+    //     .init();
+    let client_props = ClientProps::new()
+        .server_addr("127.0.0.1:8848")
+        .namespace("")
+        .auth_username("admin")
+        .auth_password("admin");
 
-
-    let naming_service = NamingServiceBuilder::new(client_props)
-        .build();
+    let naming_service = NamingServiceBuilder::new(client_props).enable_auth_plugin_http().build();
     let listener = std::sync::Arc::new(MyNamingEventListener);
-    naming_service.expect("REASON").subscribe("test-service".to_string(),
-                                              Some(constants::DEFAULT_GROUP.to_string()),
-                                              Vec::default(),
-                                              listener);
+    let _subscribe_ret = naming_service.expect("REASON")
+        .subscribe(
+            "test-service".to_string(),
+            Some(constants::DEFAULT_GROUP.to_string()),
+            Vec::default(),
+            listener,
+        ).await;
+    let service_instance1 = ServiceInstance {
+        ip: "127.0.0.1".to_string(),
+        port: 9090,
+        ..Default::default()
+    };
 
+    let client_props = ClientProps::new()
+        .server_addr("127.0.0.1:8848")
+        .namespace("")
+        .auth_username("admin")
+        .auth_password("admin");
+    let naming_service = NamingServiceBuilder::new(client_props).enable_auth_plugin_http().build();
+
+    let _register_instance_ret = naming_service.expect("REASON")
+        .batch_register_instance(
+            "test-service".to_string(),
+            Some(constants::DEFAULT_GROUP.to_string()),
+            vec![service_instance1],
+        )
+        .await;
     App::new()
         .add_plugin(SqlxPlugin)  // 添加插件
         .add_plugin(WebPlugin)
