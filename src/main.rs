@@ -1,18 +1,18 @@
 mod config;
-mod res;
-mod pojo;
 mod controller;
+mod entity_patch;
 mod mapper;
+mod pojo;
+mod res;
 mod service;
-mod patch;
 
 use spring_web::WebConfigurator;
 
-use crate::config::mysql::{init_mysql};
+use crate::config::mysql::init_mysql;
 use crate::config::nacos::init_nacos_service;
 use spring::{auto_config, App};
-use spring_web::{axum::response::IntoResponse, extractor::Path, WebPlugin};
 use spring_web::route;
+use spring_web::{axum::response::IntoResponse, extractor::Path, WebPlugin};
 
 #[auto_config(WebConfigurator)]
 #[tokio::main]
@@ -20,10 +20,7 @@ async fn main() {
     init_nacos_service().await;
     init_mysql().await;
     tracing::info!("Listening on http://127.0.0.1:5800");
-    App::new()
-        .add_plugin(WebPlugin)
-        .run()
-        .await
+    App::new().add_plugin(WebPlugin).run().await
 }
 
 #[route("/", method = "GET")]

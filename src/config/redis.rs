@@ -9,7 +9,6 @@ pub async fn redis_write(key: &str, value: &str) -> Result<(), RedisError> {
     Ok(())
 }
 
-
 pub async fn redis_read(key: &str) -> Result<String, RedisError> {
     // connect to redis
     let client = redis::Client::open("redis://127.0.0.1/")?;
