@@ -11,11 +11,9 @@ use serde::Deserialize;
 use serde::Serialize;
 use spring_web::axum::response::IntoResponse;
 use spring_web::axum::Json;
-use std::any::Any;
-use std::collections::HashMap;
 
 // 确保这个结构体实现了 Serialize 特性
-#[derive(Serialize, Default, Deserialize)] 
+#[derive(Serialize, Default, Deserialize)]
 struct UserData {
     username: String,
     roles: Vec<String>,
@@ -69,7 +67,13 @@ impl UsersService for UsersServicesImpl {
         let roles = redis_read("now_user_role").await.unwrap_or_default();
         let roles = vec![roles];
         let username = redis_read("now_user_name").await.unwrap_or_default();
-        let rs_data = UserData { username, roles };
-        Ok(ResponseData::success(rs_data, "成功"))
+        let rs_data = UserData {
+            username,
+            roles: roles.clone(),
+        };
+        Ok(ResponseData::success(
+            rs_data,
+            &("获取".to_owned() + &roles[1] + "类型用户成功"),
+        ))
     }
 }
