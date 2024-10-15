@@ -2,6 +2,9 @@ mod config;
 mod res;
 mod pojo;
 mod controller;
+mod mapper;
+mod service;
+mod patch;
 
 use spring_web::WebConfigurator;
 

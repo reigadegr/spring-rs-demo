@@ -1,7 +1,4 @@
 use serde::{Deserialize, Serialize};
-use spring_web::axum;
-use spring_web::axum::http::StatusCode;
-use spring_web::axum::response::IntoResponse;
 
 // 定义响应数据结构体
 #[derive(Serialize, Deserialize, Debug)]
