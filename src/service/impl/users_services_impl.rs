@@ -63,6 +63,7 @@ impl UsersService for UsersServicesImpl {
         Ok(ResponseData::success(now_token, "登录成功"))
     }
 
+    //从redis拿取相关数据
     async fn info() -> spring_web::error::Result<impl IntoResponse> {
         let roles = redis_read("now_user_role").await.unwrap_or_default();
         let roles = vec![roles];
